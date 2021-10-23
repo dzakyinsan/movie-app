@@ -1,25 +1,24 @@
 * {
   margin: 0;
   padding: 0;
-  /* background: #d9dce1; */
-  font-size: 20px;
 }
 .body {
   background-color: black;
 }
 .navbar-container {
-  position: fixed;
   z-index: 99;
+  padding: 0 20px 50px 0;
+}
+.autoinput {
+  margin-right: 50px !important;
 }
 .navbar-container Input {
-  color: white !important;
+  color: black !important;
   width: 12em;
 }
-.navbar-container .rangepicker Input {
-  color: black !important;
-}
 .navbar-container img {
-  margin-left: 12px;
+  margin: 15px 0 0 100px;
+  height: 50px;
 }
 .main-container {
   background: black;
@@ -32,23 +31,18 @@ figure {
 }
 .overlay {
   position: absolute;
-  top: 170px;
-  left: 30px;
+  top: 400px;
   width: 100%;
   height: 100%;
-  background: transparent;
+  background-color: rgba(255, 255, 255, 0.5);
   display: flex;
-  align-items: center;
-  /* justify-content: center; */
+  align-items: top;
+  justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
 }
-.title {
-  background: transparent;
-}
 .title h2 {
-  background: transparent;
-  color: white;
+  margin-top: 70px !important;
 }
 
 .image img {
@@ -105,4 +99,12 @@ figure {
 }
 .schedule {
   margin: 5px 0 0 15px;
+}
+.laoding-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 20px;
+  color: whitesmoke;
 }

@@ -1,30 +1,43 @@
-import Axios from "axios";
 import React, { useEffect, useState } from "react";
-import { LazyLoadImage } from "react-lazy-load-image-component";
-import { Input, DatePicker, Modal, Space } from "antd";
+import { Modal, Space, AutoComplete } from "antd";
 import moment from "moment";
-import { SearchOutlined, ScheduleOutlined, LikeOutlined } from "@ant-design/icons";
-import "react-lazy-load-image-component/src/effects/blur.css";
+import { useSelector, useDispatch } from "react-redux";
+import { ScheduleOutlined, LikeOutlined } from "@ant-design/icons";
 import "./App.css";
 import "antd/dist/antd.css";
-import logo from "./assets/logo.png";
+import { onGetMovieAction } from "./redux/action";
+import Logo from "./assets/logo.png";
 
 function App() {
-  const url = "https://5f50ca542b5a260016e8bfb0.mockapi.io/api/v1/movies";
-  const [data, setData] = useState([]);
   const [dataDetail, setDataDetail] = useState([]);
   const [search, setSearch] = useState("");
+  const [searchValue, setSearchValue] = useState("");
   const [modalDetail, setModalDetail] = useState(null);
-  const [startDate, setStartDate] = useState();
-  const [endDate, setEndDate] = useState();
   const [filteredImage, setFilteredImage] = useState([]);
+  const [page, setPage] = useState(1);
+  const dispatch = useDispatch();
+  const data = useSelector((state) => state.MovieReducer.movies);
+  const loading = useSelector((state) => state.MovieReducer.loading);
+  const error = useSelector((state) => state.MovieReducer.error);
 
-  const { RangePicker } = DatePicker;
+  useEffect(() => {
+    dispatch(onGetMovieAction(page));
+    document.body.classList.add("body");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
-  const getData = () => {
-    Axios.get(url).then((res) => {
-      setData(res.data);
-    });
+  useEffect(() => {
+    setFilteredImage(data?.filter((val) => val.Title.toLowerCase().includes(search.toLowerCase())));
+  }, [search, data]);
+
+  window.onscroll = function () {
+    if (window.innerHeight + document.documentElement.scrollTop === document.documentElement.scrollHeight) {
+      scrollToEnd();
+    }
+  };
+
+  const scrollToEnd = () => {
+    setPage(page + 1);
   };
 
   const toggleModal = (val) => {
@@ -35,20 +48,20 @@ function App() {
   const renderModalDetail = () => {
     return (
       <div style={{ position: "relative" }}>
-        <img src={dataDetail.image} alt={dataDetail.title} width="100%" height="100%" />
+        <img src={dataDetail.Poster} alt={dataDetail.Title} width="100%" height="100%" />
         <div className="detail-desc pl-2">
-          <h2>{dataDetail.title}</h2>
+          <h2>{dataDetail.Title}</h2>
           <div className="d-flex">
             <p>
               <ScheduleOutlined />
             </p>
-            <p className="schedule">{moment(dataDetail.showTime).format("MMMM Do YYYY, h:mm:ss a")}</p>
+            <p className="schedule">{moment(dataDetail.Year).format("YYYY")}</p>
           </div>
           <div className="d-flex">
             <p>
               <LikeOutlined />
             </p>
-            <p className="schedule">{dataDetail.like}</p>
+            <p className="schedule">100</p>
           </div>
         </div>
       </div>
@@ -59,54 +72,50 @@ function App() {
     setModalDetail(false);
   };
 
-  const onChangeDate = (date, dateString) => {
-    if (dateString[0] === "") {
-      setStartDate(moment("2019-01-01").format("YYYY-MM-DD"));
-      setEndDate(moment("2020-12-01").format("YYYY-MM-DD"));
-    } else {
-      setStartDate(dateString[0]);
-      setEndDate(dateString[1]);
+  const onSelect = (selected) => {
+    setSearch(selected);
+  };
+
+  const onChangeSearch = (e) => {
+    if (!e.length) {
+      setSearchValue(e);
+      setSearch(e);
+    }
+    setSearchValue(e);
+  };
+
+  const optionValue = () => {
+    if (searchValue) {
+      return data.filter((val) => val.Title.toLowerCase().includes(searchValue.toLowerCase()));
     }
   };
 
-  useEffect(() => {
-    getData();
-    document.body.classList.add("body");
-  }, []);
-
-  useEffect(() => {
-    setFilteredImage(data.filter((val) => val.title.toLowerCase().includes(search.toLowerCase())));
-  }, [search, data]);
-
-  useEffect(() => {
-    setFilteredImage(data.filter((val) => moment(val.showTime).format("YYYY-MM-DD") >= startDate && moment(val.showTime).format("YYYY-MM-DD") <= endDate));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate]);
-
+  if (loading || error.length) {
+    return <div className="laoding-error">{error.length ? error : "Loading..."}</div>;
+  }
   return (
     <div className="row main-container">
       <div className="navbar-container">
         <div className="row pt-3">
           <div className="col-6">
-            <img src={logo} alt="logo" height="100px" width="120px" />
+            <img src={Logo} alt="xxi logo" height="100px" />
           </div>
-          <div className="d-flex justify-content-end col-6 pt-3">
+          <div className="d-flex justify-content-end col-6 pt-3 pr-5">
             <Space direction="hirozontal">
-              <RangePicker className="rangepicker" onChange={onChangeDate} />
-              <Input placeholder="input movie title" bordered={false} suffix={<SearchOutlined style={{ color: "white" }} />} onChange={(e) => setSearch(e.target.value)} />
+              <AutoComplete options={optionValue()} value={searchValue} style={{ width: 300 }} onSelect={onSelect} onChange={onChangeSearch} placeholder="Search Movie" className="autoinput" />
             </Space>
           </div>
         </div>
       </div>
 
       {filteredImage?.map((val) => (
-        <div className="image col-md-4 col-sm-6" key={val.id} onClick={() => toggleModal(val)}>
+        <div className="image col-md-4 col-sm-6" key={val.imdbId} onClick={() => toggleModal(val)}>
           <div id="zoom-In">
             <figure>
-              <LazyLoadImage src={val.image} alt={val.title} effect="blur" delayTime={1000} />
+              <img src={val.Poster} alt={val.Title} />
               <div className="overlay">
                 <div className="title">
-                  <h2>{val.title}</h2>
+                  <h2>{val.Title}</h2>
                 </div>
               </div>
             </figure>
